@@ -26,8 +26,8 @@ use Pharaonic\Laravel\Likes\Support\LikeManager;
 final class LikesMorphMany extends MorphMany
 {
     /**
-     * Declared here so PHPStan 2.1.0, the line's lowest, infers TDeclaringModel
-     * from `new LikesMorphMany(...)`: it does not read the inherited constructor.
+     * Declared here so PHPStan infers TDeclaringModel from `new LikesMorphMany(...)`:
+     * PHPStan 2.1.0 does not read it from the inherited constructor.
      *
      * @param  Builder<Like>  $query
      * @param  TDeclaringModel  $parent
