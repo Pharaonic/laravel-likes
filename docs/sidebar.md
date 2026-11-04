@@ -10,7 +10,6 @@
   - [Events](#events)
   - [Deletes and Soft Deletes](#deletion-and-soft-deletes)
   - [Integrity and Concurrency](#integrity-and-concurrency)
-  - [Upgrading from Laravel Users](#upgrading-from-laravel-users)
 - API Reference
   - [Reference](#api-reference)
 - Examples

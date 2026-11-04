@@ -30,7 +30,7 @@ Configuration keys (`pharaonic.likes.*`), publish tags, and registered Blade, Ar
 
 - The migration file name `2026_11_04_000001_create_pharaonic_likes_table.php` and its class `CreatePharaonicLikesTable` never change. The class is named because `6.x` supports Laravel below 8.37, and it is not `CreateLikesTable` so it never collides with the class `pharaonic/laravel-users` ships.
 - Later schema changes go in new migrations, never in the released one.
-- The migration refuses to run over an existing table (it may be the `laravel-users` table without the unique index); the upgrade guide converts that table.
+- The migration refuses to run over an existing table (it may be the `laravel-users` table without the unique index).
 - Uniqueness comes from the `{table}_unique_pair` index, never from a read before the write. A unique violation counts as "already liked" only when the pair's row can be read afterwards; otherwise the insert is retried, then the exception is rethrown.
 - A deadlock (SQLSTATE `40001` or `40P01`, MySQL error 1213) on the insert or delete runs the statement again, up to three times, but only outside a transaction: inside one, the database already rolled the caller's transaction back.
 - Ids are stored as strings (`varchar(64)`), so the likes relations compare the parent key as a string in `has()`, `whereHas()`, and `withCount()` (`LikesMorphMany`): PostgreSQL refuses `bigint = varchar` and `uuid = varchar`. MySQL uses `CONCAT()` rather than `CAST()`, which fails when the connection collation differs from the table's.

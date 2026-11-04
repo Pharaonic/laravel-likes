@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## 6.0.1 - Unreleased
+
+### Changed
+
+- The error for an existing likes table no longer points to an upgrade guide: it says to set `pharaonic.likes.table` to another name, or move the existing table out of the way.
+
+### Removed
+
+- The "Upgrading from Laravel Users" section of the documentation, with the links and FAQ entry that pointed to it.
+
 ## 6.0.0 - 2026-11-04
 
 ### Added
