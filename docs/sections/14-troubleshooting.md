@@ -8,7 +8,7 @@ Another package, usually `pharaonic/laravel-users`, created a `likes` table. Con
 
 The pair was already liked: `like()` returns whether this call created the like. Use `hasLiked()` for the current state. A `creating` listener on the `Like` model that returns false also makes `like()` return false.
 
-### `The liker [App\User] is not saved`
+### `The liker [App\Models\User] is not saved`
 
 A write was called with a model that isn't saved. Save it first, or check `$model->exists`.
 

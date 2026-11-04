@@ -5,7 +5,7 @@ subtitle: A user likes a post, and the post page shows its count.
 file: routes/web.php
 language: php
 code: |
-  use App\Post;
+  use App\Models\Post;
 
   Route::post('posts/{post}/like', function (Post $post) {
       $created = request()->user()->like($post);
