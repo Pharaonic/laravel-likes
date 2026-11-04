@@ -7,7 +7,7 @@
  * Usage: php worker.php <like|unlike|toggle> <user id> <post id> <start time>
  */
 
-use Pharaonic\Laravel\Likes\Tests\Concurrency\Worker;
+use Pharaonic\Laravel\Likes\Tests\Concurrency\WorkerApplication;
 use Pharaonic\Laravel\Likes\Tests\Fixtures\Post;
 use Pharaonic\Laravel\Likes\Tests\Fixtures\User;
 
@@ -15,7 +15,7 @@ require __DIR__.'/../../vendor/autoload.php';
 
 [, $action, $userId, $postId, $start] = $argv;
 
-(new Worker('worker'))->createApplication();
+(new WorkerApplication('worker'))->createApplication();
 
 $user = User::query()->findOrFail($userId);
 $post = Post::query()->findOrFail($postId);
