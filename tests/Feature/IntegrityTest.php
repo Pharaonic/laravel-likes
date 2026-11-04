@@ -105,3 +105,66 @@ test('a model event can cancel the insert', function () {
     $this->assertSame(0, Like::query()->count());
     Event::assertNotDispatched(LikeCreated::class);
 });
+
+/**
+ * Make the first $times inserts of a like fail as MySQL's deadlock victim.
+ */
+function deadlockOnCreating(int $times): stdClass
+{
+    $attempts = new stdClass;
+    $attempts->count = 0;
+
+    Like::creating(function () use ($attempts, $times) {
+        if (++$attempts->count > $times) {
+            return;
+        }
+
+        $message = 'SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction';
+        $pdo = new PDOException($message);
+        $pdo->errorInfo = ['40001', 1213, 'Deadlock found when trying to get lock; try restarting transaction'];
+
+        throw new QueryException('testing', 'insert into `likes` ...', [], $pdo);
+    });
+
+    return $attempts;
+}
+
+test('a deadlock outside a transaction is retried', function () {
+    $attempts = deadlockOnCreating(1);
+
+    Event::fake([LikeCreated::class]);
+    $user = User::create();
+    $post = Post::create();
+
+    expect($user->like($post))->toBeTrue()
+        ->and($attempts->count)->toBe(2)
+        ->and(Like::query()->count())->toBe(1);
+    Event::assertDispatchedTimes(LikeCreated::class, 1);
+});
+
+test('a deadlock that keeps happening is thrown', function () {
+    $attempts = deadlockOnCreating(PHP_INT_MAX);
+    $user = User::create();
+    $post = Post::create();
+
+    expect(fn () => $user->like($post))->toThrow(QueryException::class, 'Deadlock found')
+        ->and($attempts->count)->toBe(3)
+        ->and(Like::query()->count())->toBe(0);
+});
+
+test('a deadlock inside a transaction is left to the caller', function () {
+    $attempts = deadlockOnCreating(1);
+    $user = User::create();
+    $post = Post::create();
+
+    DB::beginTransaction();
+
+    try {
+        // Laravel 11+ rethrows it as DeadlockException, so the caller's DB::transaction() retries.
+        expect(fn () => $user->like($post))->toThrow(PDOException::class, 'Deadlock found');
+    } finally {
+        DB::rollBack();
+    }
+
+    expect($attempts->count)->toBe(1);
+});
