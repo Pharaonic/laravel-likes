@@ -117,7 +117,7 @@ class CreatePharaonicLikesTable extends Migration
 }
 ```
 
-`change()` needs `doctrine/dbal` on Laravel 10 (`composer require doctrine/dbal`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
+`change()` keeps only the modifiers you list, so add any the column had (such as `nullable()`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
 
 ### 7. Remove the old package
 

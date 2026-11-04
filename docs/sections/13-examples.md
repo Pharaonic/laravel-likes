@@ -99,4 +99,4 @@ public function handle(LikeCreated $event)
 }
 ```
 
-Register it for `Pharaonic\Laravel\Likes\Events\LikeCreated` in your `EventServiceProvider`.
+Laravel discovers it from the `LikeCreated` type of `handle()`; see [Events](#events) to register it yourself.
