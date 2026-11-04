@@ -116,4 +116,79 @@ class IntegrityTest extends TestCase
         $this->assertSame(0, Like::query()->count());
         Event::assertNotDispatched(LikeCreated::class);
     }
+
+    public function test_a_deadlock_outside_a_transaction_is_retried(): void
+    {
+        $attempts = $this->deadlockOnCreating(1);
+
+        Event::fake([LikeCreated::class]);
+        $user = User::create();
+        $post = Post::create();
+
+        $this->assertTrue($user->like($post));
+        $this->assertSame(2, $attempts->count);
+        $this->assertSame(1, Like::query()->count());
+        Event::assertDispatchedTimes(LikeCreated::class, 1);
+    }
+
+    public function test_a_deadlock_that_keeps_happening_is_thrown(): void
+    {
+        $attempts = $this->deadlockOnCreating(PHP_INT_MAX);
+        $user = User::create();
+        $post = Post::create();
+
+        try {
+            $user->like($post);
+            $this->fail('The deadlock was swallowed.');
+        } catch (QueryException $exception) {
+            $this->assertStringContainsString('Deadlock found', $exception->getMessage());
+        }
+
+        $this->assertSame(3, $attempts->count);
+        $this->assertSame(0, Like::query()->count());
+    }
+
+    public function test_a_deadlock_inside_a_transaction_is_left_to_the_caller(): void
+    {
+        $attempts = $this->deadlockOnCreating(1);
+        $user = User::create();
+        $post = Post::create();
+
+        DB::beginTransaction();
+
+        try {
+            $user->like($post);
+            $this->fail('The deadlock was retried inside the caller\'s transaction.');
+        } catch (\PDOException $exception) {
+            // Laravel 11+ rethrows it as DeadlockException, so the caller's DB::transaction() retries.
+            $this->assertStringContainsString('Deadlock found', $exception->getMessage());
+        } finally {
+            DB::rollBack();
+        }
+
+        $this->assertSame(1, $attempts->count);
+    }
+
+    /**
+     * Make the first $times inserts of a like fail as MySQL's deadlock victim.
+     */
+    private function deadlockOnCreating(int $times): \stdClass
+    {
+        $attempts = new \stdClass;
+        $attempts->count = 0;
+
+        Like::creating(function () use ($attempts, $times) {
+            if (++$attempts->count > $times) {
+                return;
+            }
+
+            $message = 'SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction';
+            $pdo = new \PDOException($message);
+            $pdo->errorInfo = ['40001', 1213, 'Deadlock found when trying to get lock; try restarting transaction'];
+
+            throw new QueryException('insert into `likes` ...', [], $pdo);
+        });
+
+        return $attempts;
+    }
 }
