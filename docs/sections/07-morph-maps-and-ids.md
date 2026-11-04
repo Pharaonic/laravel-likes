@@ -10,13 +10,28 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 public function boot()
 {
     Relation::morphMap([
-        'user' => \App\User::class,
-        'post' => \App\Post::class,
+        'user' => \App\Models\User::class,
+        'post' => \App\Models\Post::class,
     ]);
 }
 ```
 
-With this map a like stores `user` and `post`, and `$like->liker` resolves back to `App\User`. Register the map before you store likes: rows stored with class names are not rewritten when you add a map later, and lookups for `post` won't find rows stored as `App\Post`.
+With this map a like stores `user` and `post`, and `$like->liker` resolves back to `App\Models\User`. Register the map before you store likes: rows stored with class names are not rewritten when you add a map later, and lookups for `post` won't find rows stored as `App\Models\Post`.
+
+### Enforced morph maps
+
+With `Relation::enforceMorphMap()`, every model that likes or is liked needs an alias. Liking with an unmapped model throws Laravel's `ClassMorphViolationException` before anything is written:
+
+```php
+Relation::enforceMorphMap([
+    'user' => \App\Models\User::class,
+    'post' => \App\Models\Post::class,
+]);
+
+$user->like($product); // ClassMorphViolationException: No morph map defined for model [App\Models\Product].
+```
+
+### Type length
 
 Types are limited to 191 characters. A longer class name or alias throws an `InvalidArgumentException` before anything is written; register a shorter alias.
 

@@ -20,8 +20,8 @@ use Pharaonic\Laravel\Likes\Models\Like;
 
 $like = $post->likes()->latest()->first();
 
-$like->liker;    // App\User
-$like->likeable; // App\Post
+$like->liker;    // App\Models\User
+$like->likeable; // App\Models\Post
 $like->created_at;
 
 $user->givenLikes()->with('likeable')->latest()->get()

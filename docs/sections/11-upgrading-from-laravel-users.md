@@ -40,7 +40,7 @@ SELECT liker_type, likeable_type, COUNT(*) FROM likes GROUP BY liker_type, likea
 
 - No morph map, and the table holds class names: nothing to change.
 - A morph map, and the table holds aliases: nothing to change.
-- A morph map, and the table holds class names (or a mix): decide which value to keep and update the rows deliberately, type by type, for example `UPDATE likes SET likeable_type = 'post' WHERE likeable_type = 'App\\Post';`. Don't rewrite types you haven't checked: two classes may share an alias, or an alias may have changed.
+- A morph map, and the table holds class names (or a mix): decide which value to keep and update the rows deliberately, type by type, for example `UPDATE likes SET likeable_type = 'post' WHERE likeable_type = 'App\\Models\\Post';`. Don't rewrite types you haven't checked: two classes may share an alias, or an alias may have changed.
 
 ### 4. Remove duplicate rows
 
@@ -117,7 +117,7 @@ class CreatePharaonicLikesTable extends Migration
 }
 ```
 
-`change()` needs `doctrine/dbal` on Laravel 7 (`composer require doctrine/dbal`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
+`change()` needs `doctrine/dbal` on Laravel 8 (`composer require doctrine/dbal`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
 
 ### 7. Remove the old package
 

@@ -7,9 +7,11 @@ Send the state the user wants, so a double click can't undo itself, and return t
 - ===Routes
 
   ```php title="routes/web.php"
+  use App\Http\Controllers\PostLikeController;
+
   Route::middleware('auth')->group(function () {
-      Route::post('posts/{post}/like', 'PostLikeController@store');
-      Route::delete('posts/{post}/like', 'PostLikeController@destroy');
+      Route::post('posts/{post}/like', [PostLikeController::class, 'store']);
+      Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy']);
   });
   ```
 
@@ -18,7 +20,7 @@ Send the state the user wants, so a double click can't undo itself, and return t
   ```php title="app/Http/Controllers/PostLikeController.php"
   namespace App\Http\Controllers;
 
-  use App\Post;
+  use App\Models\Post;
   use Illuminate\Http\Request;
 
   class PostLikeController extends Controller
@@ -71,7 +73,7 @@ $likes = $request->user()->givenLikes()->with('likeable')->latest()->paginate(20
 
 `User` uses both traits, so users can like users.
 
-```php title="app/User.php"
+```php title="app/Models/User.php"
 class User extends Authenticatable
 {
     use CanLike, HasLikes;

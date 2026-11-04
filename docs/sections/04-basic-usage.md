@@ -2,8 +2,8 @@
 
 Add `CanLike` to the model that likes and `HasLikes` to the model that is liked.
 
-```php title="app/User.php"
-namespace App;
+```php title="app/Models/User.php"
+namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Pharaonic\Laravel\Likes\Concerns\CanLike;
@@ -14,8 +14,8 @@ class User extends Authenticatable
 }
 ```
 
-```php title="app/Post.php"
-namespace App;
+```php title="app/Models/Post.php"
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Pharaonic\Laravel\Likes\Concerns\HasLikes;
@@ -92,6 +92,6 @@ $bob->likedBy($alice);         // true
 The writes need both models saved, because a like stores their keys. `like()`, `unlike()`, `toggleLike()`, `likeBy()` and `unlikeBy()` throw an `InvalidArgumentException` before touching the database when either model is unsaved. The reads `hasLiked()` and `likedBy()` return false, and `whereLikedBy()` matches nothing.
 
 ```php
-$user->like(new Post); // InvalidArgumentException: The likeable [App\Post] is not saved: ...
+$user->like(new Post); // InvalidArgumentException: The likeable [App\Models\Post] is not saved: ...
 $user->hasLiked(new Post); // false
 ```

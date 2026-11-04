@@ -19,7 +19,7 @@ class NotifyAuthor
 {
     public function handle(LikeCreated $event)
     {
-        if ($event->likeable instanceof \App\Post) {
+        if ($event->likeable instanceof \App\Models\Post) {
             $event->likeable->author->notify(new PostLiked($event->liker));
         }
     }
