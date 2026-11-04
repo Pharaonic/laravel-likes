@@ -1,15 +1,15 @@
 <?php
 
 /*
- * One worker of ConcurrencyTest: boots the package, waits for the shared
+ * One worker of the concurrency tests: boots the package, waits for the shared
  * start time, then likes, unlikes or toggles one pair and prints 1 or 0.
  *
  * Usage: php worker.php <like|unlike|toggle> <user id> <post id> <start time>
  */
 
-use Pharaonic\Laravel\Likes\Tests\Concurrency\WorkerApplication;
 use Pharaonic\Laravel\Likes\Tests\Fixtures\Post;
 use Pharaonic\Laravel\Likes\Tests\Fixtures\User;
+use Pharaonic\Laravel\Likes\Tests\Processes\WorkerApplication;
 
 require __DIR__.'/../../vendor/autoload.php';
 
