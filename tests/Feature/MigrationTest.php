@@ -78,7 +78,7 @@ test('an existing likes table stops the migration with an explanation', function
         $this->fail('The migration ran over an existing table.');
     } catch (RuntimeException $exception) {
         $this->assertStringContainsString('The [likes] table already exists', $exception->getMessage());
-        $this->assertStringContainsString('upgrade guide', $exception->getMessage());
+        $this->assertStringContainsString('Set pharaonic.likes.table to another name', $exception->getMessage());
     }
 
     $this->assertSame(0, DB::table('migrations')->where('migration', LIKES_MIGRATION)->count());
