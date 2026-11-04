@@ -4,8 +4,10 @@ namespace Pharaonic\Laravel\Likes\Relations;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Stringable;
+use Pharaonic\Laravel\Likes\Models\Like;
+use Pharaonic\Laravel\Likes\Support\LikeManager;
 
 /**
  * The likes relation of a liker or likeable model.
@@ -16,9 +18,28 @@ use Stringable;
  * and SQLite the string comparison is what lets the unique index be used.
  *
  * @internal
+ *
+ * @template TDeclaringModel of Model
+ *
+ * @extends MorphMany<Like, TDeclaringModel>
  */
 final class LikesMorphMany extends MorphMany
 {
+    /**
+     * Declared here so PHPStan 2.1.0, the line's lowest, infers TDeclaringModel
+     * from `new LikesMorphMany(...)`: it does not read the inherited constructor.
+     *
+     * @param  Builder<Like>  $query
+     * @param  TDeclaringModel  $parent
+     * @param  string  $type
+     * @param  string  $id
+     * @param  string  $localKey
+     */
+    public function __construct(Builder $query, Model $parent, $type, $id, $localKey)
+    {
+        parent::__construct($query, $parent, $type, $id, $localKey);
+    }
+
     /**
      * The parent key, as the string the likes table stores.
      *
@@ -28,13 +49,13 @@ final class LikesMorphMany extends MorphMany
     {
         $key = parent::getParentKey();
 
-        return is_int($key) || is_string($key) || $key instanceof Stringable ? (string) $key : $key;
+        return LikeManager::keyToString($key) ?? $key;
     }
 
     /**
      * Constrain eager loading to the parents' keys, as strings.
      *
-     * @param  array<int, \Illuminate\Database\Eloquent\Model>  $models
+     * @param  array<int, TDeclaringModel>  $models
      * @return void
      */
     public function addEagerConstraints(array $models)
@@ -42,8 +63,10 @@ final class LikesMorphMany extends MorphMany
         $keys = [];
 
         foreach ($this->getKeys($models, $this->localKey) as $key) {
-            if (is_int($key) || is_string($key) || $key instanceof Stringable) {
-                $keys[] = (string) $key;
+            $key = LikeManager::keyToString($key);
+
+            if ($key !== null) {
+                $keys[] = $key;
             }
         }
 
@@ -54,8 +77,10 @@ final class LikesMorphMany extends MorphMany
     /**
      * The subquery behind has(), whereHas() and withCount().
      *
+     * @param  Builder<Like>  $query
+     * @param  Builder<TDeclaringModel>  $parentQuery
      * @param  mixed  $columns
-     * @return Builder
+     * @return Builder<Like>
      */
     public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, $columns = ['*'])
     {
