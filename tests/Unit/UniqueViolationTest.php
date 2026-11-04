@@ -7,7 +7,7 @@ test('only unique violations are recognized', function (string $sqlState, ?int $
     $pdo = new PDOException($message);
     $pdo->errorInfo = [$sqlState, $driverCode, $message];
 
-    expect(LikeManager::isUniqueViolation(new QueryException('insert into "likes" ...', [], $pdo)))->toBe($unique);
+    expect(LikeManager::isUniqueViolation(new QueryException('testing', 'insert into "likes" ...', [], $pdo)))->toBe($unique);
 })->with([
     'mysql duplicate entry' => ['23000', 1062, "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'x' for key 'likes_unique_pair'", true],
     'mysql not null' => ['23000', 1048, "SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'liker_id' cannot be null", false],

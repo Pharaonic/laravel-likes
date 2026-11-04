@@ -14,6 +14,5 @@ final class LikeCreated
         public Like $like,
         public Model $liker,
         public Model $likeable,
-    ) {
-    }
+    ) {}
 }

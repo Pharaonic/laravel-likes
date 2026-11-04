@@ -15,6 +15,5 @@ final class LikeRemoved
         public Like $like,
         public Model $liker,
         public Model $likeable,
-    ) {
-    }
+    ) {}
 }
