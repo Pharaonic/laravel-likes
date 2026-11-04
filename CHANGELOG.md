@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 13.0.1 - Unreleased
+
+### Removed
+
+- The "Upgrading from Laravel Users" section of the documentation, with the links and FAQ entry that pointed to it.
+
 ## 13.0.0 - 2026-11-04
 
 First release of the Laravel 13 line, built from 12.0.0.
