@@ -5,6 +5,7 @@ namespace Pharaonic\Laravel\Likes\Concerns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Pharaonic\Laravel\Likes\Models\Like;
 use Pharaonic\Laravel\Likes\Support\LikeManager;
 
 /**
@@ -24,6 +25,8 @@ trait HasLikes
 
     /**
      * The likes this model received.
+     *
+     * @return MorphMany<Like, $this>
      */
     public function likes(): MorphMany
     {
@@ -56,6 +59,8 @@ trait HasLikes
 
     /**
      * Only the models the liker likes.
+     *
+     * @param  Builder<static>  $query
      */
     public function scopeWhereLikedBy(Builder $query, Model $liker): void
     {

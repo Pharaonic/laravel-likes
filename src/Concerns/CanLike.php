@@ -4,6 +4,7 @@ namespace Pharaonic\Laravel\Likes\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Pharaonic\Laravel\Likes\Models\Like;
 use Pharaonic\Laravel\Likes\Support\LikeManager;
 
 /**
@@ -23,6 +24,8 @@ trait CanLike
 
     /**
      * The likes this model gave.
+     *
+     * @return MorphMany<Like, $this>
      */
     public function givenLikes(): MorphMany
     {

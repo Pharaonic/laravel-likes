@@ -51,6 +51,8 @@ class Like extends Model
 
     /**
      * The model that gave the like.
+     *
+     * @return MorphTo<Model, $this>
      */
     public function liker(): MorphTo
     {
@@ -59,6 +61,8 @@ class Like extends Model
 
     /**
      * The model that received the like.
+     *
+     * @return MorphTo<Model, $this>
      */
     public function likeable(): MorphTo
     {
@@ -67,6 +71,8 @@ class Like extends Model
 
     /**
      * Only the likes given by the liker.
+     *
+     * @param  Builder<Like>  $query
      */
     public function scopeWhereLiker(Builder $query, Model $liker): void
     {
@@ -75,6 +81,8 @@ class Like extends Model
 
     /**
      * Only the likes received by the likeable.
+     *
+     * @param  Builder<Like>  $query
      */
     public function scopeWhereLikeable(Builder $query, Model $likeable): void
     {
