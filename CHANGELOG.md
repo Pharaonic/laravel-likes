@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## 13.0.2 - Unreleased
+## 13.0.2 - 2026-11-04
 
 ### Changed
 
