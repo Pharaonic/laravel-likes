@@ -2,6 +2,7 @@
 
 namespace Pharaonic\Laravel\Likes\Support;
 
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -33,9 +34,9 @@ final class LikeManager
     public const KEY_LENGTH = 64;
 
     /**
-     * How many times an insert runs when the pair's like keeps vanishing.
+     * How many times a write runs when a concurrent request keeps getting in its way.
      */
-    private const INSERT_ATTEMPTS = 3;
+    private const ATTEMPTS = 3;
 
     /**
      * Like the likeable. True when this call created the like.
@@ -174,6 +175,20 @@ final class LikeManager
     }
 
     /**
+     * Whether the database rolled the statement back to break a deadlock.
+     */
+    public static function isDeadlock(QueryException $exception): bool
+    {
+        $errorInfo = is_array($exception->errorInfo) ? $exception->errorInfo : [];
+        $sqlState = isset($errorInfo[0]) && is_string($errorInfo[0]) ? $errorInfo[0] : (string) $exception->getCode();
+        $driverCode = $errorInfo[1] ?? null;
+
+        // MySQL and MariaDB report ER_LOCK_DEADLOCK (1213) as 40001, like SQL
+        // Server's deadlock victim; PostgreSQL uses 40P01 for deadlock_detected.
+        return in_array($sqlState, ['40001', '40P01'], true) || $driverCode === 1213;
+    }
+
+    /**
      * Insert the like, unless the pair already has one.
      *
      * @return array{0: Like|null, 1: bool} the like (null when a model event
@@ -196,20 +211,21 @@ final class LikeManager
                     })
                     : $like->save();
             } catch (QueryException $exception) {
-                if (! self::isUniqueViolation($exception)) {
-                    throw $exception;
-                }
+                if (self::isUniqueViolation($exception)) {
+                    $existing = Like::query()->useWritePdo()->where($pair)->first();
 
-                $existing = Like::query()->useWritePdo()->where($pair)->first();
-
-                if ($existing instanceof Like) {
-                    return [$existing, false];
-                }
+                    if ($existing instanceof Like) {
+                        return [$existing, false];
+                    }
 
                 // The like was deleted between the insert and the read: insert
                 // again. When it keeps missing, another unique index refused the
                 // row, which is not ours to swallow.
-                if ($attempt >= self::INSERT_ATTEMPTS) {
+                } elseif (! self::canRetry($exception, $connection)) {
+                    throw $exception;
+                }
+
+                if ($attempt >= self::ATTEMPTS) {
                     throw $exception;
                 }
 
@@ -231,7 +247,17 @@ final class LikeManager
      */
     private static function remove(Like $like, Model $liker, Model $likeable): bool
     {
-        $deleted = Like::query()->toBase()->where($like->getKeyName(), $like->getKey())->delete() > 0;
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $deleted = Like::query()->toBase()->where($like->getKeyName(), $like->getKey())->delete() > 0;
+
+                break;
+            } catch (QueryException $exception) {
+                if ($attempt >= self::ATTEMPTS || ! self::canRetry($exception, $like->getConnection())) {
+                    throw $exception;
+                }
+            }
+        }
 
         if ($deleted) {
             $like->exists = false;
@@ -240,6 +266,16 @@ final class LikeManager
         }
 
         return $deleted;
+    }
+
+    /**
+     * Whether a failed statement can simply run again: a deadlock outside a
+     * transaction. Inside one, the database rolled the whole transaction back,
+     * so only the caller can retry it.
+     */
+    private static function canRetry(QueryException $exception, ConnectionInterface $connection): bool
+    {
+        return self::isDeadlock($exception) && $connection->transactionLevel() === 0;
     }
 
     /**
