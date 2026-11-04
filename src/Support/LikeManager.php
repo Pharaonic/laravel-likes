@@ -51,7 +51,7 @@ final class LikeManager
      */
     public static function unlike(Model $liker, Model $likeable): bool
     {
-        $like = Like::query()->useWritePdo()->where(self::pair($liker, $likeable))->first();
+        $like = self::findPair(self::pair($liker, $likeable));
 
         return $like instanceof Like && self::remove($like, $liker, $likeable);
     }
@@ -221,7 +221,7 @@ final class LikeManager
                     : $like->save();
             } catch (QueryException $exception) {
                 if (self::isUniqueViolation($exception)) {
-                    $existing = Like::query()->useWritePdo()->where($pair)->first();
+                    $existing = self::findPair($pair);
 
                     if ($existing instanceof Like) {
                         return [$existing, false];
@@ -277,6 +277,20 @@ final class LikeManager
         }
 
         return $deleted;
+    }
+
+    /**
+     * The pair's like, read from the write connection so a lagging replica
+     * can't hide a row the statement before just wrote or kept.
+     *
+     * @param  array{liker_type: string, liker_id: string, likeable_type: string, likeable_id: string}  $pair
+     */
+    private static function findPair(array $pair): ?Like
+    {
+        $query = Like::query()->where($pair);
+        $query->getQuery()->useWritePdo();
+
+        return $query->first();
     }
 
     /**
