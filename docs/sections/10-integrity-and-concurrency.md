@@ -8,6 +8,17 @@ Only a refusal by a unique index counts as "already liked", and only when the pa
 
 Inside a transaction the insert runs in a savepoint, so a refused insert doesn't abort your transaction on PostgreSQL.
 
+### Deadlocks
+
+On MySQL, a like and an unlike (or two toggles) of the same pair at the same moment can make InnoDB roll back one of the statements to break a deadlock. Outside a transaction, the package runs that statement again, up to three times, so the call still returns its normal result. Inside your own transaction, the database has already rolled the whole transaction back, so the deadlock reaches you; run the transaction with retries:
+
+```php
+DB::transaction(function () use ($user, $post) {
+    $user->like($post);
+    // ...
+}, 3);
+```
+
 ### Removing
 
 `unlike()` reads the pair's like and deletes it by id. The call that deleted the row returns true and dispatches `LikeRemoved`; a simultaneous `unlike()` deletes nothing and returns false.
