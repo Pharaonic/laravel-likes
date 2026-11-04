@@ -33,7 +33,7 @@ php artisan vendor:publish --tag=likes-migrations
 The published file keeps the package's file name, `2026_11_04_000001_create_pharaonic_likes_table.php`, so Laravel runs your copy instead of the package's, never both.
 
 :::warning Existing likes table
-The migration stops with an error when a `likes` table already exists, for example one created by `pharaonic/laravel-users`. Convert that table first, as [Upgrading from Laravel Users](#upgrading-from-laravel-users) describes, or set another table name.
+The migration stops with an error when a `likes` table already exists, for example one created by `pharaonic/laravel-users`. Set `pharaonic.likes.table` to another name before migrating, or move that table out of the way first.
 :::
 
 ### Publish Configuration

@@ -30,10 +30,6 @@ One request creates the like and returns true; the other finds the unique index 
 
 Yes. Ids are stored as strings of up to 64 characters, so integer, UUID and ULID models can like each other in the same table.
 
-## Can I move from the likes of pharaonic/laravel-users?
-
-Yes, after converting the existing table: remove duplicate rows, check the stored types, and add the unique index. The upgrade guide in the documentation walks through it.
-
 ## Is {package.name} free to use?
 
 Yes. {package.name} is open source under the {package.license} license, so you can use it in personal and commercial projects.
