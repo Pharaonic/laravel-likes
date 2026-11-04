@@ -117,7 +117,7 @@ class CreatePharaonicLikesTable extends Migration
 }
 ```
 
-`change()` needs `doctrine/dbal` on Laravel 8 (`composer require doctrine/dbal`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
+`change()` needs `doctrine/dbal` on Laravel 9 (`composer require doctrine/dbal`). The unique index fails to build while duplicates remain, which is your check that step 4 is complete.
 
 ### 7. Remove the old package
 
