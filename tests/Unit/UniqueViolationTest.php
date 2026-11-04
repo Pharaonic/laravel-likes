@@ -21,3 +21,19 @@ test('only unique violations are recognized', function (string $sqlState, ?int $
     'sqlsrv duplicate key' => ['23000', 2627, 'SQLSTATE[23000]: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Violation of UNIQUE KEY constraint', true],
     'sqlsrv unique index' => ['23000', 2601, 'SQLSTATE[23000]: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Cannot insert duplicate key row', true],
 ]);
+
+test('only deadlocks are recognized', function (string $sqlState, ?int $driverCode, string $message, bool $deadlock) {
+    $pdo = new PDOException($message);
+    $pdo->errorInfo = [$sqlState, $driverCode, $message];
+
+    expect(LikeManager::isDeadlock(new QueryException('testing', 'insert into "likes" ...', [], $pdo)))->toBe($deadlock);
+})->with([
+    'mysql deadlock' => ['40001', 1213, 'SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock', true],
+    'mysql lock wait timeout' => ['HY000', 1205, 'SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded', false],
+    'mysql duplicate entry' => ['23000', 1062, "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'x'", false],
+    'pgsql deadlock' => ['40P01', 7, 'SQLSTATE[40P01]: Deadlock detected: 7 ERROR: deadlock detected', true],
+    'pgsql serialization failure' => ['40001', 7, 'SQLSTATE[40001]: Serialization failure: 7 ERROR: could not serialize access', true],
+    'pgsql unique violation' => ['23505', 7, 'SQLSTATE[23505]: Unique violation: 7 ERROR: duplicate key value', false],
+    'sqlite locked' => ['HY000', 5, 'SQLSTATE[HY000]: General error: 5 database is locked', false],
+    'sqlsrv deadlock victim' => ['40001', 1205, 'SQLSTATE[40001]: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Transaction was deadlocked', true],
+]);
