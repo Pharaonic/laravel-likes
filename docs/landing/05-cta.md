@@ -9,4 +9,4 @@ buttons:
     icon: arrow-right
 ---
 
-Read the full documentation for installation, configuration, liking and unliking, relations, counts and filters, morph maps and key types, events, deletes and soft deletes, concurrency, upgrading from pharaonic/laravel-users, the API reference, examples, and troubleshooting.
+Read the full documentation for installation, configuration, liking and unliking, relations, counts and filters, morph maps and key types, events, deletes and soft deletes, concurrency, the API reference, examples, and troubleshooting.
