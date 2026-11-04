@@ -24,8 +24,7 @@ class CreatePharaonicLikesTable extends Migration
         if (Schema::hasTable($name)) {
             throw new RuntimeException(sprintf(
                 'The [%s] table already exists, so pharaonic/laravel-likes cannot create it. '
-                .'If pharaonic/laravel-users created it, convert it as the upgrade guide describes '
-                .'(https://pharaonic.dev/packages/laravel/likes); otherwise set pharaonic.likes.table to another name.',
+                .'Set pharaonic.likes.table to another name, or move the existing table out of the way.',
                 $name
             ));
         }

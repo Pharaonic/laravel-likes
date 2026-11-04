@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 13.0.2 - 2026-11-04
+
+### Changed
+
+- The error for an existing likes table no longer points to an upgrade guide: it says to set `pharaonic.likes.table` to another name, or move the existing table out of the way.
+
 ## 13.0.1 - 2026-11-04
 
 ### Removed
