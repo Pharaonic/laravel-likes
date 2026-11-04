@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## 11.0.1 - Unreleased
+
+### Changed
+
+- The error for an existing likes table no longer points to an upgrade guide: it says to set `pharaonic.likes.table` to another name, or move the existing table out of the way.
+
+### Removed
+
+- The "Upgrading from Laravel Users" section of the documentation, with the links and FAQ entry that pointed to it.
+
 ## 11.0.0 - 2026-11-04
 
 First release of the Laravel 11 line, built from 10.0.0.

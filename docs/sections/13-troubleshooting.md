@@ -2,7 +2,7 @@
 
 ### `The [likes] table already exists` when migrating
 
-Another package, usually `pharaonic/laravel-users`, created a `likes` table. Convert it as [Upgrading from Laravel Users](#upgrading-from-laravel-users) describes, or set `pharaonic.likes.table` to another name before migrating.
+Another package, usually `pharaonic/laravel-users`, created a `likes` table. Set `pharaonic.likes.table` to another name before migrating, or move that table out of the way first.
 
 ### `like()` returns false the first time
 
@@ -30,4 +30,4 @@ The models were deleted with a query (`Post::where(...)->delete()`), which skips
 
 ### Likes are missing after adding a morph map
 
-Rows stored before the map hold class names, and the package now looks for the alias. Update those rows deliberately, as [Upgrading from Laravel Users](#upgrading-from-laravel-users) step 3 shows.
+Rows stored before the map hold class names, and the package now looks for the alias. Update those rows deliberately, type by type, for example `UPDATE likes SET likeable_type = 'post' WHERE likeable_type = 'App\\Models\\Post';`.
