@@ -247,6 +247,8 @@ final class LikeManager
      */
     private static function remove(Like $like, Model $liker, Model $likeable): bool
     {
+        $deleted = false;
+
         for ($attempt = 1; ; $attempt++) {
             try {
                 $deleted = Like::query()->toBase()->where($like->getKeyName(), $like->getKey())->delete() > 0;
