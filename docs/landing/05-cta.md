@@ -1,0 +1,12 @@
+---
+view: components.packages.cta
+variant: plain
+title: Ready to dig in?
+buttons:
+  - label: View Full Documentation
+    href: "{card.docsUrl}"
+    style: primary
+    icon: arrow-right
+---
+
+Read the full documentation for installation, configuration, liking and unliking, relations, counts and filters, morph maps and key types, events, deletes and soft deletes, concurrency, upgrading from pharaonic/laravel-users, the API reference, examples, and troubleshooting.
