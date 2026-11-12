@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 10.0.2 - Unreleased
+
+### Fixed
+
+- Inside a database transaction, `like()`, `likeBy()` and `toggleLike()` threw the unique index violation when another request had committed the same like after the transaction's first read (MySQL's REPEATABLE READ). They now find that like with a locking read and return false, as they do outside a transaction.
+
 ## 10.0.1 - 2026-11-04
 
 ### Changed
