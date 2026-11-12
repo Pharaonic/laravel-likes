@@ -43,6 +43,38 @@ class IntegrityTest extends TestCase
         Event::assertNotDispatched(LikeCreated::class);
     }
 
+    public function test_a_like_committed_during_the_callers_transaction_is_found_not_thrown(): void
+    {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $this->markTestSkipped('SQLite lets one connection write at a time.');
+        }
+
+        $user = User::create();
+        $post = Post::create();
+        $this->app['config']->set('database.connections.other', $this->app['config']->get('database.connections.testing'));
+
+        DB::transaction(function () use ($user, $post) {
+            // MySQL (REPEATABLE READ) takes the transaction's snapshot at its first read.
+            $this->assertFalse($user->hasLiked($post));
+
+            DB::connection('other')->table('likes')->insert([
+                'liker_type' => User::class,
+                'liker_id' => (string) $user->getKey(),
+                'likeable_type' => Post::class,
+                'likeable_id' => (string) $post->getKey(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            $this->assertFalse($user->like($post));
+            $this->assertFalse($user->toggleLike($post));
+        });
+        DB::disconnect('other');
+
+        $this->assertFalse($user->hasLiked($post));
+        $this->assertSame(0, Like::query()->count());
+    }
+
     public function test_a_violation_of_another_unique_index_is_not_swallowed(): void
     {
         Schema::table('likes', function (Blueprint $table) {
