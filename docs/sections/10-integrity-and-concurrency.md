@@ -6,7 +6,7 @@ The `likes_unique_pair` index on (`likeable_type`, `likeable_id`, `liker_type`, 
 
 Only a refusal by a unique index counts as "already liked", and only when the pair's row can then be read. Every other database error is thrown: a missing table, a lost connection, a `NOT NULL` failure, or a unique index of your own that refused the row.
 
-Inside a transaction the insert runs in a savepoint, so a refused insert doesn't abort your transaction on PostgreSQL.
+Inside a transaction the insert runs in a savepoint, so a refused insert doesn't abort your transaction on PostgreSQL. The pair's row is then read with a locking read, so a like another request committed after your transaction started is still found: on MySQL, whose transactions read from a snapshot, a plain read would miss it.
 
 ### Deadlocks
 
