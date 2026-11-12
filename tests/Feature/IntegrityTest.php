@@ -37,6 +37,37 @@ test('a like written by another connection is reported as already liked', functi
     Event::assertNotDispatched(LikeCreated::class);
 });
 
+test('a like committed during the callers transaction is found, not thrown', function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite lets one connection write at a time.');
+    }
+
+    $user = User::create();
+    $post = Post::create();
+    $this->app['config']->set('database.connections.other', $this->app['config']->get('database.connections.testing'));
+
+    DB::transaction(function () use ($user, $post) {
+        // MySQL (REPEATABLE READ) takes the transaction's snapshot at its first read.
+        $this->assertFalse($user->hasLiked($post));
+
+        DB::connection('other')->table('likes')->insert([
+            'liker_type' => User::class,
+            'liker_id' => (string) $user->getKey(),
+            'likeable_type' => Post::class,
+            'likeable_id' => (string) $post->getKey(),
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+        $this->assertFalse($user->like($post));
+        $this->assertFalse($user->toggleLike($post));
+    });
+    DB::disconnect('other');
+
+    $this->assertFalse($user->hasLiked($post));
+    $this->assertSame(0, Like::query()->count());
+});
+
 test('a violation of another unique index is not swallowed', function () {
     Schema::table('likes', function (Blueprint $table) {
         $table->unique(['liker_type', 'liker_id'], 'likes_one_per_liker');
