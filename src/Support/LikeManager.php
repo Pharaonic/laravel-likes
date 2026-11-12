@@ -212,11 +212,7 @@ final class LikeManager
                     : $like->save();
             } catch (QueryException $exception) {
                 if (self::isUniqueViolation($exception)) {
-                    // A locking read: inside a transaction, a plain read on MySQL
-                    // (REPEATABLE READ) returns the snapshot the transaction started
-                    // from and misses a like another request committed since. The
-                    // refused insert already holds that lock.
-                    $existing = Like::query()->useWritePdo()->where($pair)->sharedLock()->first();
+                    $existing = self::findPair($pair, true);
 
                     if ($existing instanceof Like) {
                         return [$existing, false];
@@ -272,6 +268,33 @@ final class LikeManager
         }
 
         return $deleted;
+    }
+
+    /**
+     * The pair's like, read from the write connection so a lagging replica
+     * can't hide a row the statement before just wrote or kept.
+     *
+     * With $refused, the unique index just refused the pair's insert. Inside a
+     * transaction, a plain read on MySQL (REPEATABLE READ) returns the snapshot
+     * the transaction started from, which misses a row another request committed
+     * since; a locking read returns it. The refused insert already holds that lock.
+     * Outside a transaction the plain read already sees it, and a locking read
+     * could deadlock with concurrent writes of the pair.
+     *
+     * @param  array{liker_type: string, liker_id: string, likeable_type: string, likeable_id: string}  $pair
+     */
+    private static function findPair(array $pair, bool $refused = false): ?Like
+    {
+        $query = Like::query()->where($pair);
+        $query->getQuery()->useWritePdo();
+
+        if ($refused && $query->getQuery()->getConnection()->transactionLevel() > 0) {
+            $query->sharedLock();
+        }
+
+        $like = $query->first();
+
+        return $like instanceof Like ? $like : null;
     }
 
     /**
