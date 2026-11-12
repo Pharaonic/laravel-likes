@@ -212,7 +212,11 @@ final class LikeManager
                     : $like->save();
             } catch (QueryException $exception) {
                 if (self::isUniqueViolation($exception)) {
-                    $existing = Like::query()->useWritePdo()->where($pair)->first();
+                    // A locking read: inside a transaction, a plain read on MySQL
+                    // (REPEATABLE READ) returns the snapshot the transaction started
+                    // from and misses a like another request committed since. The
+                    // refused insert already holds that lock.
+                    $existing = Like::query()->useWritePdo()->where($pair)->sharedLock()->first();
 
                     if ($existing instanceof Like) {
                         return [$existing, false];
